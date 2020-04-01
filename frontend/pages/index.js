@@ -6,36 +6,64 @@ class Home extends React.Component {
     // constructor
     constructor(props) {
         super(props);
-        this.state = {search: "zed"};
+        this.state = {search: "zed", foodlist: []};
     }
 
     // input textbox
-    handleUpdate(evt) {
+    async handleUpdate(evt) {
         this.setState({search: evt.target.value});
-        this.handleSearch(evt.target.value);
     }
 
     // take user input and run query on DB getFoodInfo()
     async handleSearch(evt) {
-        const foodItems = await getFoodInfo(this.state.search);
-        this.setState({foodItems});
+        await this.handleUpdate(evt);
+        const foodlist = await getFoodInfo(this.state.search);
+        this.setState({foodlist: foodlist});
     }
 
     // render body
     render() {
         return (
-            <div>
+            <div className="foodWrapper">
                 <div className="navbar">
                     <Link href="/">
                         <a>HOME</a>
                     </Link>
                 </div>
-            <div style={{ margin: "0px auto", width: "600px", textAlign: "center"}}>
-                <img src="/food-logo.jpg" alt="fresh food logo" className="app-logo"/>
-                <h2 className="title">FOODE FACTS</h2>
-                <p><input type="text" value={this.state.search} onChange={this.handleUpdate.bind(this)}/></p>
 
-            </div>
+                <div style={{ margin: "0px auto", width: "80vw", textAlign: "center"}}>
+                    <img src="/food-logo.jpg" alt="fresh food logo" className="app-logo"/>
+                    <h2 className="title">FOODE FACTS</h2>
+                    <p><input className="textbox" type="text" value={this.state.search} onChange={this.handleSearch.bind(this)}/></p>
+                    <table>
+                        { "foodlist" in this.state && this.state.foodlist.status != undefined && this.state.foodlist.status == 'good' ?
+                            <tr>
+                                <th>Descriptions</th>
+                                <th>Calories</th>
+                                <th>Fats</th>
+                                <th>Proteins</th>
+                                <th>Carbs</th> 
+                            </tr> : null
+                        }
+
+                        { "foodlist" in this.state && this.state.foodlist.status != undefined && this.state.foodlist.status == 'good' ?
+                                this.state.foodlist.foods.map((item) => (
+                                    <tr className="tableRow">
+                                        <td>{item.description}</td>
+                                        <td>{item.calories}</td>
+                                        <td>{item.fat.toFixed(2)}</td>
+                                        <td>{item.protein}</td>
+                                        <td>{item.carbs}</td>
+                                    </tr>
+                                ))
+                            : null
+                        }
+
+                        { "foodlist" in this.state && this.state.foodlist.status == 'bad' ?
+                            <p className="lonely">It's lonely here</p>: null
+                        }
+                    </table>
+                </div>
                 
                 <style jsx>{`
                     .navbar {
@@ -44,9 +72,19 @@ class Home extends React.Component {
                         width: 100%;
                         margin-bottom: 100px;
                     }
+
+                    .textbox {
+                        width: 30vw;
+                        margin-bottom: 10vh;
+                    }
+
+                    .lonely {
+                        text-align: center;
+                    }
     
                     a {
                         float: right;
+                        letter-spacing: .1em;
                         padding: 4px 10px 4px 10px;
                         text-decoration: none;
                         color: black;
@@ -57,13 +95,17 @@ class Home extends React.Component {
     
                     a:hover {
                         transition: .2s;
-                        color: #F4782E;
+                        color: #73a142;
                         background-color: #eee;
                     }
                     .foodWrapper {
                         width: 100%;
-                        margin: 100px auto;
+                        margin: 0 auto;
                         font-family: Roboto;
+                    }
+
+                    td {
+                        padding-top: 30px;
                     }
 
                     h1,
@@ -80,7 +122,7 @@ class Home extends React.Component {
 
                     .app-logo {
                         width: 250px;
-                        height: 250px;
+                        height: 240px;
                         border-radius: 50%;
                     }
 
@@ -93,6 +135,14 @@ class Home extends React.Component {
                         width: 60%;
                         padding: 5px 20px;
                         border-radius: 31px;
+                    }
+
+                    table {
+                        margin: 0 auto;
+                        margin-bottom: 30vh;
+                        text-align: left;
+                        width: 100vh;
+                        font-family: 'Roboto';
                     }
                 `}</style>
             </div>

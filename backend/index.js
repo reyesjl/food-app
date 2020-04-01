@@ -27,21 +27,22 @@ app.get("/food", async (req, res) => {
     try {
         const template = "SELECT description, kcal AS calories, kcal / 9 AS fat, protein_g AS protein, carbohydrate_g AS carbs FROM entries WHERE description LIKE $1 LIMIT 15";   
         const response = await pool.query(template, ['%' + req.query.q + '%']);
-
-        if (response.rowCount == 0) {
-            res.sendStatus(404);
+        if (req.query.q === "") {
+            res.json({status: "empty"});
+        } else if (response.rowCount == 0) {
+            res.json({status: "bad", foods: []});
         } else {
             console.log(response);
+        
+            // map all food properties needed
+            const foodlist = response.rows.map(function(item) {
+                return {description: item.description, calories: item.calories, fat: item.fat, 
+                        protein: item.protein, carbs: item.carbs};
+            });
+
+            // return the list of foods that meet criteria
+            res.json({status: "good", foods: foodlist});
         }
-
-        // map all food properties needed
-        const foodlist = response.rows.map(function(item) {
-            return {description: item.description, calories: item.calories, fat: item.fat, 
-                    protein: item.protein, carbs: item.carbs};
-        });
-
-        // return the list of foods that meet criteria
-        res.json({foods: foodlist});
     } catch (err) {
         console.error("Error while running: " + err);
     }
